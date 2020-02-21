@@ -1,0 +1,66 @@
+- set_fact:
+    db2_artifact_file_name='{{ db2_artifact_group }}.{{ db2_artifact_id }}.{{ db2_artifact_version }}.{{ db2_artifact_extension }}'
+
+- set_fact:
+    local_artifact_file_name='{{ db2_artifact_download_folder }}/{{ db2_artifact_file_name }}'
+    instance_artifact_file_name='/{{ db2_inst_id }}/insthome/{{ db2_artifact_file_name }}'
+
+- name: Check if local artifact file exists
+  stat:
+    path: '{{ local_artifact_file_name }}'
+    get_checksum: no
+  become: false
+  delegate_to: localhost
+  register: local_artifact_file
+
+- name: Download DB2 installer from Artifactory to local machine
+  maven_artifact:
+    group_id: '{{ db2_artifact_group }}'
+    artifact_id: '{{ db2_artifact_id }}'
+    version: '{{ db2_artifact_version }}'
+    extension: '{{ db2_artifact_extension }}'
+    repository_url: '{{artifactory_repo_url}}'
+    dest: '{{ local_artifact_file_name }}'
+  become: false
+  delegate_to: localhost
+  when: local_artifact_file.stat.exists == False
+
+- name: Check if instance artifact file exists
+  stat:
+    path: '{{ instance_artifact_file_name }}'
+    get_checksum: no
+  register: instance_artifact_file
+
+- name: Copy DB2 Installer to server.
+  copy:
+    src: '{{ local_artifact_file_name }}'
+    dest: '{{ instance_artifact_file_name }}'
+  when: instance_artifact_file.stat.exists == False
+
+- name: Install DB2
+  include_role:
+    name: ibm-db2-install
+  become: yes
+  vars:
+    ansible_become: yes
+    resp:
+      prod: "DB2_SERVER_EDITION"
+      file: '{{ db2_install_path }}'
+      lic_agreement: "ACCEPT" # ACCEPT or DECLINE
+      install_type: "TYPICAL" # TYPICAL, COMPACT, CUSTOM
+    db2_binary:
+      location: '{{ instance_artifact_file_name }}'
+      dest: '/{{ db2_inst_id }}/insthome/'
+    db2_creates: '{{ db2_artifact_root_folder }}'
+    create_instances: true
+    db2_instances:
+      - instance: '{{ db2_inst_id }}'
+        name: '{{ db2_inst_id }}'
+        password: "{{ '%s' | format(db2_inst_pw) | password_hash('sha512') }}"
+        group_name: '{{ db2_inst_group }}'
+        fenced_username: '{{ db2_fence_id }}'
+        fenced_password: "{{ '%s' | format(db2_fence_pw)  | password_hash('sha512') }}"
+        fenced_group_name: '{{ db2_fence_group }}'
+        home_directory: '/{{ db2_inst_id }}/insthome'
+        fenced_home_directory: '/home/{{ db2_fence_id }}'
+        createhome: false

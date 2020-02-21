@@ -1,0 +1,29 @@
+- name: create scripts folders
+  file:
+    path: '/{{ db2_inst_id }}/insthome/{{ item }}'
+    owner: '{{ db2_inst_id }}'
+    group: '{{ db2_inst_group }}'
+    state: directory
+    mode: 0755
+  with_items:
+    - perf
+    - admin
+    - admin/scripts
+    - admin/scripts/cfg
+    - admin/scripts/code
+    - admin/scripts/crontab
+    - admin/scripts/db2lock
+    - admin/scripts/ddl
+    - admin/scripts/output
+    - admin/scripts/save
+
+- name: copy scripts
+  copy:
+    src: '{{ item }}'
+    dest: '/{{ db2_inst_id }}/insthome/admin/scripts/code/{{ item }}'
+    owner: '{{ db2_inst_id }}'
+    group: '{{ db2_inst_group }}'
+    mode: 0755
+  with_items:
+    - start_db.sh
+    - stop_db.sh

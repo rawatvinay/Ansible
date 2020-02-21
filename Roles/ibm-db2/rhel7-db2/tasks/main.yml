@@ -1,0 +1,15 @@
+
+- import_tasks: db2-prereq.yml
+  become: yes
+
+- import_tasks: db2-user-group.yml
+  become: yes
+
+- import_tasks: filesystem.yml
+  become: yes
+
+- import_tasks: db2-install.yml
+  become: yes
+
+- import_tasks: postinstall.yml
+  become: yes

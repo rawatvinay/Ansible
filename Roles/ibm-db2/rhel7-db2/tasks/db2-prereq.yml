@@ -1,0 +1,5 @@
+- name: Install Red Hat 7 dependencies
+  yum: 
+    name: pam-devel.i686,xorg-x11-apps.x86_64,xorg-x11-xauth
+    state: present
+    update_cache: yes

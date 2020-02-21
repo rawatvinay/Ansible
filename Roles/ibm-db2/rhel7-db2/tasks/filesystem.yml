@@ -1,0 +1,74 @@
+
+- name: Create '{{ db2_vgname }}' Volume Group
+  lvg:
+    vg: '{{ db2_vgname }}'
+    pvs: '{{ db2_disk }}'
+    state: present
+
+- name: Check if {{ db2_disk }} exists
+  shell: /sbin/fdisk -l | grep -q {{ db2_disk }}
+  register: grep_sdc
+  failed_when: 'grep_sdc.rc == 1'
+
+- name: Check if '{{ db2_disk }}' is partitioned/used
+  shell: /sbin/fdisk -l {{ db2_disk }} | grep -q Device
+  register: grep_part
+  failed_when: 'grep_part.rc == 0'
+
+- name: Create db2 logical volumes
+  lvol:
+    vg: '{{ db2_vgname }}'
+    lv: '{{ item.lvname }}'
+    size: '{{ item.lvsize }}'
+    force: yes
+  with_items: '{{ db2_logical_volumes }}'
+
+- name: Format db2 logical volumes with {{ db2_fsystem_type }} filesystem
+  filesystem:
+    fstype: '{{ db2_fsystem_type }}'
+    dev: '/dev/mapper/{{ db2_vgname }}-{{ item.lvname }}'
+  with_items: '{{ db2_logical_volumes }}'
+
+- name: Make db2 directories
+  file:
+    path: '{{item.path}}'
+    state: directory
+    owner: '{{ item.owner }}'
+    group: '{{ item.group }}'
+  with_items: '{{ db2_logical_volumes }}'
+
+- name: Add db2 filesystems to fstab, create the mountpoint and mount
+  mount:
+    src: '/dev/mapper/{{ db2_vgname }}-{{ item.lvname }}'
+    name: '{{item.path}}'
+    fstype: '{{ db2_fsystem_type }}'
+    opts: '{{db2_fsystem_opts}}'
+    dump: 1
+    passno: 2
+    state: mounted
+  with_items: '{{ db2_logical_volumes }}'
+
+- name: Change ownership and permissions of db2 directories after mounting
+  file:
+    owner: '{{ item.owner }}'
+    group: '{{ item.group }}'
+    path: '{{item.path}}'
+    mode: "0755"
+    recurse: yes
+  with_items: '{{ db2_logical_volumes }}'
+
+- name: Modify permissions on /tmp
+  shell: mount -o remount,exec /tmp
+
+- name: Modify permissions on /var/tmp
+  shell: mount -o remount,exec /var/tmp
+
+- name: Change ownership and permissions of /opt/ibm directory
+  file:
+    path: '/opt/ibm'
+    mode: "0755"
+
+- name: Modify permissions on /opt/ibm/db2
+  shell: umask 022
+  args:
+    chdir: /opt/ibm/

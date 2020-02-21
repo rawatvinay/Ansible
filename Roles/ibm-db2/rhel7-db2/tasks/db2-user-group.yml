@@ -1,0 +1,42 @@
+- name: Create group '{{ db2_inst_group }}'
+  group:
+    name: '{{ db2_inst_group }}'
+    state: present
+
+- name: Create group '{{ db2_fence_group }}'
+  group:
+    name: '{{ db2_fence_group }}'
+    state: present
+
+- name: Make "{{ db2_inst_id }}"
+  file:
+    path: '/{{ db2_inst_id }}'
+    state: directory
+
+- name: Add the user '{{ db2_inst_id }}' with a primary group of '{{ db2_inst_group }}'
+  user:
+    name: '{{ db2_inst_id }}'
+    comment: DB2 Instance ID
+    group: '{{ db2_inst_group }}'
+    home: '/{{ db2_inst_id }}/insthome'
+
+- name: Set password to not expire for user '{{ db2_inst_id }}'
+  command: chage -m 0 -M 99999 -I -1 -E -1 '{{ db2_inst_id }}'
+
+- name: Add the user '{{ db2_fence_id }}' with a primary group of '{{ db2_fence_group }}'
+  user:
+    name: '{{ db2_fence_id }}'
+    comment: DB2 Fence ID
+    group: '{{ db2_fence_group }}'
+    home: '/home/{{ db2_fence_id }}'
+
+- name: Set password to not expire for user '{{ db2_fence_id }}'
+  command: chage -m 0 -M 99999 -I -1 -E -1 '{{ db2_fence_id }}'
+
+- name: change owneer of "{{ db2_inst_id }}"
+  file:
+    path: '/{{ db2_inst_id }}'
+    state: directory
+    owner: '{{ db2_inst_id }}'
+    group: '{{ db2_inst_group }}'
+    mode: 0755

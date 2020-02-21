@@ -1,0 +1,38 @@
+
+db2_disk: '/dev/xvdb'
+db2_vgname: 'db2'
+db2_fsystem_type: 'xfs'
+db2_fsystem_opts: 'defaults'
+
+db2_app_code: ''         
+db2_env_suffix_char: ''
+db2_instance_number: 1
+
+db2_artifact_group: ''
+db2_artifact_id: ''
+db2_artifact_version: ''
+db2_artifact_extension: tar
+db2_artifact_download_folder: /tmp
+db2_artifact_root_folder: server
+artifactory_repo_url: 
+
+db2_inst_id:     'db2'
+db2_inst_group:  'dbg'
+db2_fence_id:    'dbf'
+db2_fence_group: 'dgh'
+password:        "{{ db2abcd }}"
+fenced_password: "{{ dbfabcd }}"
+
+
+db2_logical_volumes:
+  - lvname:  lv_insthome
+    path:    '/db2/insthome' 
+    lvsize:  25G
+
+  - lvname:   lv_log01
+    path:     'db2/lv_log'
+    lvsize:   10G
+
+  - lvname:   lv_data
+    path:     '/db2/data'
+    lvsize:   50G
