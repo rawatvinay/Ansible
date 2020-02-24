@@ -1,0 +1,12 @@
+---
+db2_packages:
+ - pam
+ - pam-devel.i686
+ - libaio
+ - libstdc++-devel.i686
+ - libstdc++
+ - ksh
+ - unzip
+ - numactl
+ - libselinux-python
+ 

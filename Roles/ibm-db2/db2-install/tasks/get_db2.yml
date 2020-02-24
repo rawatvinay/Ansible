@@ -1,0 +1,14 @@
+---
+#Download a DB2 copy from a custom URL (Could be a http, an ftp whatever.)
+- name: Downloading DB2
+  get_url:
+    url: "{{db2_binary.url}}"
+    dest: "{{db2_binary.location}}"
+  when: db2_binary.url is defined
+
+- name: Decompressing DB2 Server
+  unarchive:
+    src: "{{db2_binary.location}}"
+    dest: "{{db2_binary.dest}}"
+    copy: no
+    creates: "{{db2_binary.dest}}/{{db2_creates}}"

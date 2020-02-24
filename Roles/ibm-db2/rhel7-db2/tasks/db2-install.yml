@@ -39,7 +39,7 @@
 
 - name: Install DB2
   include_role:
-    name: ibm-db2-install
+    name: db2-install
   become: yes
   vars:
     ansible_become: yes

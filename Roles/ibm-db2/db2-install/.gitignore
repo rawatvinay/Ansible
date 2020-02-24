@@ -1,0 +1,14 @@
+#Ignore vagrant files
+.vagrant/
+#Big files
+*.zip
+*.tar.gz
+
+# My examples
+examples/test_*.yml
+
+# My boxes
+*.box
+
+#PyCharm Files
+*.idea/
